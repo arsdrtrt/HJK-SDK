@@ -1,17 +1,4 @@
-# `README.md`
 
-Создай файл в корне проекта:
-
-```bash
-cd ~/sdkreverse/mysdk
-nano README.md
-```
-
-Вставь содержимое ниже, сохрани (`Ctrl+O`, `Enter`, `Ctrl+X`).
-
----
-
-```markdown
 # libircam — демо для HIK/HJK FPGA UVC тепловизора
 
 Мини-SDK и приложения для тепловизора **HIK/HJK FPGA UVC Camera** (VID:PID `2bdf:0102`).
