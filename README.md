@@ -1,4 +1,3 @@
-
 # libircam — демо для HIK/HJK FPGA UVC тепловизора
 
 Мини-SDK и приложения для тепловизора **HIK/HJK FPGA UVC Camera** (VID:PID `2bdf:0102`).
@@ -19,6 +18,7 @@
 ## Требования
 
 - Ubuntu / Debian (x86_64)
+- **X11 или XWayland** — Qt5-бэкенд OpenCV нестабилен на чистом Wayland
 - `g++` с поддержкой C++17 (GCC 11+)
 - OpenCV 4.x (`pkg-config --modversion opencv4`)
 - Вендорский SDK: `libHJKUSBSDK.so`, `libHCUSBSDK.so`, `libIRSDK.so`, `libhpr.so`
@@ -47,6 +47,7 @@ mysdk/
 │   ├── view.cpp            просмотр с палитрами
 │   └── fw.cpp              прошивка камеры
 ├── build.sh                сборка всего проекта
+├── run-demo.sh             обёртка запуска (conda, Qt, Wayland)
 └── README.md               этот файл
 ```
 
@@ -114,7 +115,7 @@ g++ -g -O2 -std=c++17 -Iinclude -I../x86_64/include \
     -c src/measure.cpp  -o src/measure.o
 ar rcs libircam.a src/camera.o src/renderer.o src/measure.o
 
-# приложения
+# приложение
 g++ -g -O2 -std=c++17 \
     -Iinclude -I../x86_64/include \
     $(pkg-config --cflags opencv4) \
@@ -131,13 +132,44 @@ g++ -g -O2 -std=c++17 \
 
 ### 5. Запуск
 
+**Рекомендуется — через обёртку** (сама разберётся с conda, Qt, Wayland):
+
 ```bash
 cd ~/sdkreverse/mysdk
+./run-demo.sh
+```
+
+Создаётся один раз:
+
+```bash
+cd ~/sdkreverse/mysdk
+cat > run-demo.sh << 'EOF'
+#!/bin/bash
+cd "$(dirname "$0")"
+if [ -n "$CONDA_PREFIX" ]; then
+    echo "Note: conda активна ($CONDA_PREFIX), деактивирую"
+    export PATH="$(echo "$PATH" | tr ':' '\n' | grep -v conda | paste -sd:)"
+    unset CONDA_PREFIX CONDA_DEFAULT_ENV CONDA_SHLVL
+fi
+export LD_LIBRARY_PATH="$HOME/sdkreverse/sdk_libs:$LD_LIBRARY_PATH"
+export QT_QPA_PLATFORM=xcb
+export QT_LOGGING_RULES='*.debug=false;qt.qpa.*=false'
+exec ./apps/demo "$@"
+EOF
+chmod +x run-demo.sh
+```
+
+**Вручную** — то же самое:
+
+```bash
+cd ~/sdkreverse/mysdk
+conda deactivate                          # если conda активна
 export LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs
+export QT_QPA_PLATFORM=xcb                # обход глюков Qt+Wayland
 ./apps/demo
 ```
 
-Если udev-правило не установлено:
+Без udev-правила:
 
 ```bash
 sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/demo
@@ -218,10 +250,52 @@ T_°C = (raw16 - 10000) / u8TempDiv
 | `init libuvc failed` | нет симлинка `libuvc.so` в cwd | `ln -sf ../x86_64/lib/libuvc.so libuvc.so` |
 | `EnumDevice ret=-2` | нет прав на USB | udev-правило или `sudo` |
 | `camera open failed` | камера не подключена / нет прав | проверь `lsusb -d 2bdf:0102` |
-| `Segmentation fault` при старте окна | `XDG_RUNTIME_DIR` не задан под root | `export XDG_RUNTIME_DIR=/tmp/runtime-root` или запускай без sudo |
+| `Segmentation fault` после `SN:`, `Keys:` не печатается | Qt из conda + системный Qt OpenCV | `conda deactivate` перед запуском |
+| `Segmentation fault` при старте окна под Wayland | Qt5 Wayland-плагин | `export QT_QPA_PLATFORM=xcb` |
+| `Segmentation fault` под root | `XDG_RUNTIME_DIR` не задан | `export XDG_RUNTIME_DIR=/tmp/runtime-root` |
 | `undefined reference to cv::...` | OpenCV-либы до объектников | см. порядок сборки выше |
 | `libssl.so.3: OPENSSL_3.2.0 not found` | старый libssl из вендорского SDK | убери `libssl*.so*`, `libcrypto*.so*` из `sdk_libs/` |
 | `attempt to claim already-claimed interface` | `uvcvideo` держит интерфейс | обычно не мешает; при сбое `sudo modprobe -r uvcvideo` |
+
+## Важно: conda и Qt
+
+Если у тебя активна conda-среда (в приглашении `(base)`, `(sdk)` и т.п.),
+перед запуском **обязательно** деактивируй её:
+
+```bash
+conda deactivate
+./apps/demo
+```
+
+**Почему:** в conda-средах свой Qt5, который конфликтует с системным Qt,
+используемым OpenCV. При запуске из `(sdk)` demo падает с `Segmentation fault`
+до создания окна. В логах видно `SN: EA6334673`, но строка `Keys:` не появляется.
+
+**Как проверить, что дело в conda:**
+
+```bash
+ldd apps/demo | grep -i qt
+```
+
+Если в выводе пути к `miniconda3`, `anaconda3` или `$CONDA_PREFIX` — это оно.
+
+**Обходной путь** — запуск через `sudo` (у root нет conda в окружении):
+
+```bash
+sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/demo
+```
+
+### Wayland
+
+Даже без conda, на чистом Wayland Qt5 может падать при создании окна.
+Фикс — принудительный X11-бэкенд:
+
+```bash
+export QT_QPA_PLATFORM=xcb
+./apps/demo
+```
+
+`run-demo.sh` делает это автоматически.
 
 ## Сборка под Windows
 
@@ -237,7 +311,3 @@ T_°C = (raw16 - 10000) / u8TempDiv
 Вендорский SDK (`libHJKUSBSDK.so`, `libHCUSBSDK.so`, `libIRSDK.so`, `libhpr.so`)
 является собственностью производителя. В репозиторий не входит.
 Весь остальной код — свободный.
-```
-
----
-
