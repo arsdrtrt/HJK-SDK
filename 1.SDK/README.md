@@ -232,7 +232,7 @@ sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/view 2   # ironbow
 
 ### `apps/fw` — прошивка камеры
 
-⚠️ **Не запускать без файла прошивки от вендора** — кирпич.
+[!] **Не запускать без файла прошивки от вендора** — кирпич.
 
 ```bash
 sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs \
