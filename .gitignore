@@ -1,27 +1,42 @@
-# артефакты сборки
-*.o
+
+*~
+2.RAW/apps/capture_raw
+2.RAW/apps/*.o
+2.RAW/*.bin
+2.RAW/calib_output.txt
+2.RAW/camera_log.csv
+2.RAW/data/
+2.RAW/log_extended.txt
+2.RAW/log_full.txt
+2.RAW/meta_output.txt
+2.RAW/*.npz
+2.RAW/out_*.png
+2.RAW/*.raw
+2.RAW/raw16.bin
+2.RAW/raw16_meta.jsonl
+2.RAW/raw_sdk.bin
+2.RAW/raw_v4l2.bin
+2.RAW/*.txt
+# 2.RAW — дампы, отчёты, анализ
 *.a
+AppDir/
+*.AppImage
+appimagetool
 **/apps/demo
+**/apps/fw
 **/apps/raw
 **/apps/raw_view
 **/apps/view
-**/apps/fw
-
-# дампы и результаты
 *.bin
-*.raw
-*.png
-*.AppImage
-
-# симлинки (создаются заново на каждой машине)
+.kilo/
 **/libusb-1.0.so
 **/libuvc.so
-
-# папки инструментов
-AppDir/
-appimagetool
-.kilo/
-
-# временное
+*.o
+*.png
+*.raw
 *.swp
-*~
+# артефакты сборки
+# временное
+# дампы и результаты
+# папки инструментов
+# симлинки (создаются заново на каждой машине)
