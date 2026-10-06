@@ -242,6 +242,10 @@ T_°C = (raw16 - 10000) / u8TempDiv
 `USBSDK_Get_ThermalParam()` возвращает `dwEmissivity`, `dwDistance`,
 `dwTemperatureRangeUpperLimit/LowerLimit` (в формате `(T_°C + 100) × 10`).
 
+## Документация
+
+- [`LIFECYCLE.md`](LIFECYCLE.md) — типовой жизненный цикл камеры и обработка ошибок на каждом шаге
+
 ## Устранение неполадок
 
 | Ошибка | Причина | Решение |
