@@ -1,52 +1,50 @@
 # Endpoints камеры HIK/HJK FPGA UVC (2bdf:0102)
 
-## Дескрипторы (снято через 01_enum.cpp)
+## Дескрипторы (снято через `lsusb -v`)
 
-    bus=1 port=8 speed=480 Mbps (high)
-    bcdUSB=0x0200 bcdDevice=0x0409
-    device class=0xef subclass=0x02 protocol=0x01  ← IAD
-    MaxPacketSize0=64
-    Manufacturer: HIK
-    Product:      Camera
-    Serial:       F10615613
+    Device class    0xEF/0x02/0x01  (IAD)
+    bcdUSB          0x0200          (USB 2.0)
+    bcdDevice       0x0409
+    Manufacturer    HIK
+    Product         Camera
+    Serial          F10615613
+    Speed           480 Mbps
 
-    Configuration 1:
-      interfaces: 2
+## Interface 0 — VideoControl (class=0x0E/0x01, bcdUVC 1.10)
 
-      Interface 0 (VideoControl, 0x0E/0x01/0x00):
-        EP 0x83 IN interrupt  max_packet=16  interval=8
+    Input Terminal (ID=2, type=0x0201 Camera Sensor)
+        ↓
+    Processing Unit (ID=5)
+        bmControls = 0x00000000    ← нет стандартных PU контролов
+        ↓
+    Extension Unit (ID=10)         ← ВСЁ ЗДЕСЬ
+        GUID            a29e7641-de04-47e3-8b2b-f4341aff003b
+        bNumControls    23
+        bControlSize    4
+        bmControls      ff ff 7f 00  (все 23 контрола включены)
+        ↓
+    Output Terminal (ID=3, type=0x0101 USB Streaming)
 
-      Interface 1 (VideoStreaming, 0x0E/0x02/0x00):
-        EP 0x81 IN bulk       max_packet=512
+    EP 0x83 IN interrupt, max_packet=16, interval=8
 
-## Идентификация
+## Interface 1 — VideoStreaming (class=0x0E/0x02)
 
-| Поле | Значение | Комментарий |
-|---|---|---|
-| Device class | 0xEF/0x02/0x01 | IAD — стандарт для UVC |
-| Product string | Camera | |
-| Serial string | **F10615613** | в SDK возвращается другой — EA6334673 |
-| Speed | 480 Mbps | High Speed USB 2.0 |
-| Видео | bulk 0x81 | не isoch, но стандартно UVC |
+    EP 0x81 IN bulk, max_packet=512
+    Format 1: UNCOMPRESSED, 16 bpp
+    GUID = 32595559-... = "YUY2"     ← но фактически Y16!
 
-## Ключевое
+    7 frame descriptors:
+      1.  640×1032  1320960 bytes   2 × (640×516)
+      2.  640×512    655360 bytes   Y16 (SDK-совместимо)
+      3.  640×516    660480 bytes   Y16 + UART-логи
+      4.   80×8221  1315360 bytes   нестандарт
+      5.  640×517    655496 bytes   +1 строка
+      6.  332×991                    нестандарт
+      7.  512×1288                   нестандарт
 
-- **Нет vendor-specific интерфейса** — всё через UVC
-- **Команды** — UVC XU control transfers на Interface 0
-- **Видео** — bulk EP 0x81 на Interface 1
-- **Status** — interrupt EP 0x83 на Interface 0
+## Вывод
 
-## Что дальше
-
-1. Распарсить **class-specific** дескрипторы Interface 0 (VC)
-   — там будут Input Terminal, Processing Unit, **Extension Unit**
-2. Перечислить XU-контролы (bmControls)
-3. Увидеть, как SDK-команды (ID 1000-4501) мапятся на XU
-
-## Полезные команды
-
-    # Все UVC controls, которые ядро уже разобрало
-    v4l2-ctl -d /dev/video2 --list-ctrls -l
-
-    # Сырые дескрипторы
-    lsusb -d 2bdf:0102 -v 2>/dev/null | head -200
+- **Камера — стандартное UVC-устройство.** Никаких vendor bulk.
+- **Все команды SDK** — через XU Unit 10 (`SET_CUR`/`GET_CUR`).
+- **Видео** — через bulk EP 0x81 (UVC declares YUY2, sends Y16).
+- 23 контрола XU = 23 группы команд SDK.

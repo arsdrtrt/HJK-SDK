@@ -1,37 +1,68 @@
 # Находки
 
-## 2026-10-06 — Enumeration без SDK
+## Сессия 2026-10-06 — дескрипторы
 
-`01_enum.cpp` (libusb) показывает: камера **стандартное UVC-устройство**:
+**Ключевые данные:**
 
-- device class **0xEF/0x02/0x01** (IAD)
-- Interface 0 = **VideoControl** (0x0E/0x01)
-- Interface 1 = **VideoStreaming** (0x0E/0x02)
-- EP 0x83 IN interrupt — status
-- EP 0x81 IN bulk max_packet=512 — видео
+1. **Device class 0xEF/0x02/0x01 (IAD)** — стандартный UVC.
+2. **Interface 0 (VideoControl):** Input Terminal → Processing Unit
+   (пустой) → **Extension Unit 10** → Output Terminal.
+3. **XU GUID = `a29e7641-de04-47e3-8b2b-f4341aff003b`** — кастомный HIK.
+4. **XU имеет 23 контрола**, bControlSize=4 (до 32 бит).
+5. **Interface 1 (VideoStreaming):** 7 frame descriptors,
+   bBitsPerPixel=16, формат YUY2 (но фактически Y16).
+6. Серийник в дескрипторе `F10615613`, SDK отдаёт `EA6334673`.
 
-**Vendor-specific интерфейса нет.** Это меняет гипотезу: все команды SDK
-идут через **UVC Extension Unit (XU)** control transfers, а не через
-bulk `_INTER_CMD_HEAD`.
+## Гипотеза о протоколе
 
-Серийник в дескрипторе — `F10615613`, а SDK возвращает `EA6334673`.
-Возможно, SDK читает серийник из другого места (device info через XU).
+Команды `USBSDK_*` упакованы в **XU control transfers**:
+- `bmRequestType = 0x21` (SET_CUR) или `0xA1` (GET_CUR)
+- `bRequest = SET_CUR/GET_CUR`
+- `wValue = (selector << 8) | 0x00` — selector = 1..23
+- `wIndex = (10 << 8) | 0x00` — unit 10, interface 0
+- `wLength = size of data`
 
-## Что работает
+Внутри данных XU — возможно, тот самый `tagXU_COMMAND_HEAD`
+из `libHCUSBSDK.so`, но это надо проверить.
 
-- [x] Enumeration через libusb без SDK
-- [x] Чтение дескрипторов
-- [x] Строки (Manufacturer, Product, Serial)
+## Что проверить дальше
 
-## Что не работает / не проверено
+- [ ] `02_xu_scan.cpp` — GET_CUR/GET_INFO по всем 23 селекторам
+- [ ] Сравнить с `1.SDK/docs/PROTOCOL.md` — ID 1000-4501
+- [ ] Захват SDK-трафика через usbmon — увидеть SET_CUR пакеты
+- [ ] Разобрать упаковку XU (заголовок + payload)
 
-- [ ] Claim interface (не нужно, если только чтение дескрипторов)
-- [ ] Чтение bulk-IN
-- [ ] UVC XU scan
+## Сессия 2026-10-06 (продолжение) — usbmon capture
 
-## Открытые вопросы
+Снят трафик USB при работе SDK (`capture_raw 30`):
 
-1. Какие XU (Extension Unit) у Interface 0, какие GUID, какие контролы?
-2. Как SDK-команды (ID 1000-4501) мапятся на XU?
-3. Какой UVC-формат заявлен для Interface 1 (Y16? YUYV?)
-4. Почему SDK и дескриптор дают разные серийники?
+| Endpoint | Пакетов | Тип | Что |
+|---|---|---|---|
+| 0x00 | 202 | control | команды OUT |
+| 0x02 | 4 | ? | редко |
+| 0x80 | 499 | control | ответы IN |
+| **0x81** | **25410** | bulk | видео |
+| **0x82** | **1128** | ? | 🆕 **неизвестный** |
+| 0x83 | 288 | interrupt | status |
+
+**Распределение по типам transfers:**
+- 348 × interrupt (EP 0x83)
+- 701 × control (команды SDK!)
+- 26482 × bulk (видео)
+
+## Ключевое открытие
+
+**Endpoint 0x82 активно используется SDK, но отсутствует в
+дескрипторах Interface 0 и Interface 1 altsetting 0.**
+
+Возможно:
+1. **Скрытый alternate setting** Interface 1 (VideoStreaming),
+   не показанный в `01_enum` (мы читали только alt 0)
+2. Второй поток (может быть второй канал видео или командный)
+3. SDK переключает камеру в нестандартный режим
+
+## Что проверить
+
+- [ ] `lsusb -v` — все alternate settings Interface 1
+- [ ] Размеры пакетов EP 0x82 — постоянные?
+- [ ] Разбор control transfers EP 0x00/0x80 — реальные команды SDK
