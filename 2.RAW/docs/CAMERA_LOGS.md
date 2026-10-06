@@ -10,16 +10,16 @@ V4L2-формат `YUYV 640×516` содержит не только пиксе�
 ## Структура кадра V4L2 640×516
 
 ```
-offset 0        : 640×512 uint16 — пиксели (Vtemp отсчёты)
-                  655 360 байт
-offset 655360   : 640 uint16 — Row 0: UVC payload header
-                  1 280 байт
-offset 656640   : 640 uint16 — Row 1: расширенный header
-                  1 280 байт
-offset 657920   : 640 uint16 — Row 2: ASCII UART-лог
-                  1 280 байт
-offset 659200   : 640 uint16 — Row 3: нули (резерв)
-                  1 280 байт
+offset 0 : 640×512 uint16 — пиксели (Vtemp отсчёты)
+655 360 байт
+offset 655360 : 640 uint16 — Row 0: UVC payload header
+1 280 байт
+offset 656640 : 640 uint16 — Row 1: расширенный header
+1 280 байт
+offset 657920 : 640 uint16 — Row 2: ASCII UART-лог
+1 280 байт
+offset 659200 : 640 uint16 — Row 3: нули (резерв)
+1 280 байт
 ─────────────────
 total: 660 480 байт на кадр
 ```
@@ -56,9 +56,9 @@ total: 660 480 байт на кадр
 stream type is 3!
 [CAM_CTRL] The Temperature of FPA is 2539
 [CAM_CTRL] The Temperature of Cavity is 36
-[TEC3TempCrtl] VtempCurrent is 4810  VtempShutter is 4812
+[TEC3TempCrtl] VtempCurrent is 4810 VtempShutter is 4812
 [TEC3TempCrtl] temp_x50 is 1810 temp_x100 is 14488
-[TEC3TempCrtl] subsend_temp_x50 is -2  subsend_temp_x100 is -12
+[TEC3TempCrtl] subsend_temp_x50 is -2 subsend_temp_x100 is -12
 [TEC3TempCrtl] VtempCurrent_x100 is 38488
 [task_cam] task_cam is Runing!
 6T_Gray2Temp: distempCompk = 8388608,distempCompb = 0
@@ -86,9 +86,9 @@ OSD ERROR] []osd is timeout
 ### Ключевой вывод: пиксели = Vtemp
 
 ```
-pixel_mean (V4L2)   ≈ 4820
-VtempCurrent        = 4810..4811
-VtempShutter        = 4812
+pixel_mean (V4L2) ≈ 4820
+VtempCurrent = 4810..4811
+VtempShutter = 4812
 ```
 
 **Пиксели V4L2 — это Vtemp отсчёты болометров** (напряжения).
@@ -139,16 +139,16 @@ T_fixed = (raw_gray - distempCompb) * K / distempCompk
 ## Практические следствия
 
 1. **Читая V4L2 640×516, можно получать внутренние параметры** камеры
-   без SDK: FPA temp, состояние TEC, коэффициенты калибровки.
+без SDK: FPA temp, состояние TEC, коэффициенты калибровки.
 
 2. **Shutter-события видны в логе заранее** — можно пропускать
-   соответствующие кадры.
+соответствующие кадры.
 
 3. **Для точной калибровки** V4L2 → °C нужно учитывать `VtempShutter`
-   и `VtempCurrent`, которые SDK использует в своей формуле.
+и `VtempCurrent`, которые SDK использует в своей формуле.
 
 4. **Собственный клиент возможен** — если читать raw USB через libusb
-   без SDK, можно получать те же данные + метаданные.
+без SDK, можно получать те же данные + метаданные.
 
 ## Что осталось
 

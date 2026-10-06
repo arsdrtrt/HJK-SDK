@@ -44,7 +44,7 @@
 - Ubuntu / Debian (x86_64), X11 или XWayland
 - g++ C++17, OpenCV 4.x
 - Вендорский SDK (в `~/sdkreverse/x86_64/lib/`):
-  `libHJKUSBSDK.so`, `libHCUSBSDK.so`, `libIRSDK.so`, `libhpr.so`
+`libHJKUSBSDK.so`, `libHCUSBSDK.so`, `libIRSDK.so`, `libhpr.so`
 
 ## Лицензия
 

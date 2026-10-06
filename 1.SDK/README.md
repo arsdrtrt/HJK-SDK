@@ -22,7 +22,7 @@
 - `g++` с поддержкой C++17 (GCC 11+)
 - OpenCV 4.x (`pkg-config --modversion opencv4`)
 - Вендорский SDK в `~/sdkreverse/x86_64/lib/`:
-  `libHJKUSBSDK.so`, `libHCUSBSDK.so`, `libIRSDK.so`, `libhpr.so`
+`libHJKUSBSDK.so`, `libHCUSBSDK.so`, `libIRSDK.so`, `libhpr.so`
 - X11 или XWayland (Qt5-бэкенд OpenCV сам подбирает рабочий)
 
 Установка зависимостей:
@@ -36,24 +36,24 @@ sudo apt install build-essential pkg-config libopencv-dev
 
 ```
 1.SDK/
-├── include/ircam.hpp       публичный API
+├── include/ircam.hpp публичный API
 ├── src/
-│   ├── camera.cpp          обёртка над USBSDK_*
-│   ├── renderer.cpp        пайплайн 16→8 (destripe+TNR+PE+DDE+палитры)
-│   └── measure.cpp         измерения температуры
+│ ├── camera.cpp обёртка над USBSDK_*
+│ ├── renderer.cpp пайплайн 16→8 (destripe+TNR+PE+DDE+палитры)
+│ └── measure.cpp измерения температуры
 ├── apps/
-│   ├── demo.cpp            витрина: raw + pipeline + T° под курсором
-│   ├── raw.cpp             дампер Y16 в .bin
-│   ├── raw_view.cpp        живой просмотр Y16
-│   ├── view.cpp            просмотр с палитрами
-│   └── fw.cpp              прошивка камеры
+│ ├── demo.cpp витрина: raw + pipeline + T° под курсором
+│ ├── raw.cpp дампер Y16 в .bin
+│ ├── raw_view.cpp живой просмотр Y16
+│ ├── view.cpp просмотр с палитрами
+│ └── fw.cpp прошивка камеры
 ├── docs/
-│   ├── LIFECYCLE.md        жизненный цикл и обработка ошибок
-│   ├── ARCHITECTURE.md     структура модулей, потоки, данные
-│   └── PROTOCOL.md         реверс HCUSBSDK: карта команд, крипто
-├── build.sh                сборка библиотеки и приложений
-├── run-demo.sh             обёртка запуска (conda + Qt + LD_LIBRARY_PATH)
-└── README.md               этот файл
+│ ├── LIFECYCLE.md жизненный цикл и обработка ошибок
+│ ├── ARCHITECTURE.md структура модулей, потоки, данные
+│ └── PROTOCOL.md реверс HCUSBSDK: карта команд, крипто
+├── build.sh сборка библиотеки и приложений
+├── run-demo.sh обёртка запуска (conda + Qt + LD_LIBRARY_PATH)
+└── README.md этот файл
 ```
 
 ## Быстрый старт
@@ -122,15 +122,15 @@ cd ~/sdkreverse/mysdk/1.SDK
 
 ```
 == 1. libircam.a ==
-   ok: 913990 bytes
+ok: 913990 bytes
 == 2. apps ==
-   ok: apps/demo (929640 bytes)
-   skip raw
-   skip raw_view
-   skip view
-   skip fw
+ok: apps/demo (929640 bytes)
+skip raw
+skip raw_view
+skip view
+skip fw
 == 3. проверка линковки ==
-   ok: apps/demo
+ok: apps/demo
 
 Готово. Запуск: ./run-demo.sh
 ```
@@ -159,7 +159,7 @@ cd ~/sdkreverse/mysdk/1.SDK
 
 ```bash
 cd ~/sdkreverse/mysdk/1.SDK
-conda deactivate                              # если активна
+conda deactivate # если активна
 export LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs
 ./apps/demo
 ```
@@ -210,7 +210,7 @@ sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/demo
 
 ```bash
 sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs \
-    ./apps/raw /tmp/capture.bin 100
+./apps/raw /tmp/capture.bin 100
 ```
 
 Записывает 100 кадров (100 × 640 × 512 × 2 = 62.5 МБ) в `/tmp/capture.bin`.
@@ -226,8 +226,8 @@ sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/raw_view
 ### `apps/view` — просмотр с палитрами
 
 ```bash
-sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/view 0   # white hot
-sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/view 2   # ironbow
+sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/view 0 # white hot
+sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/view 2 # ironbow
 ```
 
 ### `apps/fw` — прошивка камеры
@@ -236,7 +236,7 @@ sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs ./apps/view 2   # ironbow
 
 ```bash
 sudo env LD_LIBRARY_PATH=$HOME/sdkreverse/sdk_libs \
-    ./apps/fw /path/to/firmware.bin
+./apps/fw /path/to/firmware.bin
 ```
 
 Спросит `YES` для подтверждения. Процесс 1–3 минуты, USB не выдёргивать.
@@ -291,7 +291,7 @@ ldd apps/demo | grep -i qt
 Если всё-таки падает — попробуй:
 
 ```bash
-export QT_QPA_PLATFORM=xcb       # X11 через XWayland
+export QT_QPA_PLATFORM=xcb # X11 через XWayland
 ./apps/demo
 ```
 
@@ -365,11 +365,11 @@ strace -f -e trace=openat ./apps/demo 2>&1 | grep -iE "libusb|libuvc"
 ## Документация
 
 - [`docs/LIFECYCLE.md`](docs/LIFECYCLE.md) — жизненный цикл камеры,
-  обработка ошибок на каждом шаге
+обработка ошибок на каждом шаге
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — структура модулей,
-  многопоточность, поток данных от сенсора до экрана
+многопоточность, поток данных от сенсора до экрана
 - [`docs/PROTOCOL.md`](docs/PROTOCOL.md) — реверс вендорского SDK: карта
-  команд, структуры, криптография, прошивка
+команд, структуры, криптография, прошивка
 
 ## Сборка под Windows
 
@@ -378,7 +378,7 @@ Linux (`ELF x86-64`). Варианты:
 
 1. **WSL2 + WSLg** — запуск из Windows через `.bat`, окно выводится в Windows.
 2. **Свой клиент на libusb** — требует реверса протокола `tagINTER_CMD_HEAD`
-   (см. `docs/PROTOCOL.md`).
+(см. `docs/PROTOCOL.md`).
 3. **Windows SDK от вендора** — если существует, запросить по SN.
 
 ## Лицензия

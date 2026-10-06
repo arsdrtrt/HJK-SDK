@@ -26,10 +26,10 @@ FPGA UVC (VID:PID `2bdf:0102`): через вендорский SDK и чере�
 ```c
 // callback
 void frame_cb(void *data, void *user) {
-    Frame *f = (Frame*)data;
-    // f->buffer — uint16_t[640×512]
-    // f->u8TempDiv = 100
-    // T_°C = (raw - 10000) / 100
+Frame *f = (Frame*)data;
+// f->buffer — uint16_t[640×512]
+// f->u8TempDiv = 100
+// T_°C = (raw - 10000) / 100
 }
 ```
 
@@ -42,8 +42,8 @@ void frame_cb(void *data, void *user) {
 
 ```bash
 v4l2-ctl -d /dev/video2 \
-  --set-fmt-video=width=640,height=516,pixelformat=YUYV \
-  --stream-mmap --stream-to=frame.bin --stream-count=1
+--set-fmt-video=width=640,height=516,pixelformat=YUYV \
+--stream-mmap --stream-to=frame.bin --stream-count=1
 ```
 
 - **Формат кадра:** 660 480 байт = 512 строк пикселей + 4 строки метаданных
@@ -62,16 +62,16 @@ v4l2-ctl -d /dev/video2 \
 ## 2. Структура кадра V4L2 640×516
 
 ```
-offset 0        : 640×512 uint16  — пиксели (Vtemp)
-                  655 360 байт
-offset 655360   : 640 uint16      — Row 0: UVC payload header
-                  1 280 байт
-offset 656640   : 640 uint16      — Row 1: расширенный header
-                  1 280 байт
-offset 657920   : 640 uint16      — Row 2: ASCII UART-лог
-                  1 280 байт
-offset 659200   : 640 uint16      — Row 3: нули
-                  1 280 байт
+offset 0 : 640×512 uint16 — пиксели (Vtemp)
+655 360 байт
+offset 655360 : 640 uint16 — Row 0: UVC payload header
+1 280 байт
+offset 656640 : 640 uint16 — Row 1: расширенный header
+1 280 байт
+offset 657920 : 640 uint16 — Row 2: ASCII UART-лог
+1 280 байт
+offset 659200 : 640 uint16 — Row 3: нули
+1 280 байт
 ─────────────────
 total: 660 480 байт на кадр
 ```
@@ -82,7 +82,7 @@ total: 660 480 байт на кадр
 
 ```python
 def sdk_to_temp(raw_sdk):
-    return (raw_sdk - 10000.0) / 100.0
+return (raw_sdk - 10000.0) / 100.0
 ```
 
 ### 3.2. V4L2 640×516 → °C
@@ -101,7 +101,7 @@ T_°C = 0.012633 × raw_v4l2 − 39.0768
 
 ```python
 def v4l2_to_temp(raw_v4l2):
-    return 0.012633 * raw_v4l2 - 39.0768
+return 0.012633 * raw_v4l2 - 39.0768
 ```
 
 Проверка:
@@ -126,9 +126,9 @@ Row 2 в V4L2 640×516 содержит **ASCII-лог** внутреннего 
 stream type is 3!
 [CAM_CTRL] The Temperature of FPA is 2539
 [CAM_CTRL] The Temperature of Cavity is 36
-[TEC3TempCrtl] VtempCurrent is 4810  VtempShutter is 4812
+[TEC3TempCrtl] VtempCurrent is 4810 VtempShutter is 4812
 [TEC3TempCrtl] temp_x50 is 1810 temp_x100 is 14488
-[TEC3TempCrtl] subsend_temp_x50 is -2  subsend_temp_x100 is -12
+[TEC3TempCrtl] subsend_temp_x50 is -2 subsend_temp_x100 is -12
 [TEC3TempCrtl] VtempCurrent_x100 is 38488
 6T_Gray2Temp: distempCompk = 8388608,distempCompb = 0
 [taskShut] TEC control enable !
@@ -202,23 +202,23 @@ SDK отдаёт сигнал **до TNR** — более «сырой», но �
 
 ```
 2.RAW/
-├── README.md                    этот файл
+├── README.md этот файл
 ├── apps/
-│   ├── capture_raw.cpp          захват Y16 через SDK + JSONL-логи
-│   ├── capture_raw              собранный бинарник
-│   ├── stream_probe.py          перебор всех V4L2 форматов
-│   ├── parse_meta.py            разбор UVC payload header
-│   ├── parse_log.py             базовый парсер UART-логов
-│   ├── parse_log_extended.py    расширенный парсер (CSV)
-│   ├── calibrate.py             регрессия SDK ↔ V4L2
-│   └── run_calibration.sh       снять одну сцену в обоих режимах
+│ ├── capture_raw.cpp захват Y16 через SDK + JSONL-логи
+│ ├── capture_raw собранный бинарник
+│ ├── stream_probe.py перебор всех V4L2 форматов
+│ ├── parse_meta.py разбор UVC payload header
+│ ├── parse_log.py базовый парсер UART-логов
+│ ├── parse_log_extended.py расширенный парсер (CSV)
+│ ├── calibrate.py регрессия SDK ↔ V4L2
+│ └── run_calibration.sh снять одну сцену в обоих режимах
 ├── docs/
-│   ├── HEADER_ANALYSIS.md       разбор структуры Y16
-│   ├── STREAM_MODES.md          все доступные типы потока
-│   ├── NETD_MRTD.md             методика и результаты NETD
-│   └── CAMERA_LOGS.md           расшифровка UART-логов
-└── data/                        (gitignore)
-    └── streams/                 образцы форматов
+│ ├── HEADER_ANALYSIS.md разбор структуры Y16
+│ ├── STREAM_MODES.md все доступные типы потока
+│ ├── NETD_MRTD.md методика и результаты NETD
+│ └── CAMERA_LOGS.md расшифровка UART-логов
+└── data/ (gitignore)
+└── streams/ образцы форматов
 ```
 
 ## 7. Быстрый старт
@@ -238,9 +238,9 @@ pip install numpy pillow
 sudo tee /etc/udev/rules.d/99-hik-thermal.rules >/dev/null << 'EOF'
 SUBSYSTEM=="usb", ATTR{idVendor}=="2bdf", ATTR{idProduct}=="0102", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="2bdf", ATTR{idProduct}=="0102", \
-  DRIVER=="uvcvideo", RUN+="/bin/sh -c 'for i in /sys/bus/usb/drivers/uvcvideo/*:1.*; do \
-    case $(readlink -f $i) in *2bdf:0102*) \
-      echo -n $(basename $i) > /sys/bus/usb/drivers/uvcvideo/unbind ;; esac; done'"
+DRIVER=="uvcvideo", RUN+="/bin/sh -c 'for i in /sys/bus/usb/drivers/uvcvideo/*:1.*; do \
+case $(readlink -f $i) in *2bdf:0102*) \
+echo -n $(basename $i) > /sys/bus/usb/drivers/uvcvideo/unbind ;; esac; done'"
 EOF
 
 sudo udevadm control --reload-rules
@@ -255,10 +255,10 @@ cd ~/sdkreverse/mysdk/2.RAW
 
 SL=$HOME/sdkreverse/sdk_libs
 g++ -g -O2 -std=c++17 -I../../x86_64/include \
-    -o apps/capture_raw apps/capture_raw.cpp \
-    -L$SL -Wl,-rpath,$SL \
-    -lHJKUSBSDK -lIRSDK -lHCUSBSDK -lhpr -lz \
-    -lpthread -ldl -lm
+-o apps/capture_raw apps/capture_raw.cpp \
+-L$SL -Wl,-rpath,$SL \
+-lHJKUSBSDK -lIRSDK -lHCUSBSDK -lhpr -lz \
+-lpthread -ldl -lm
 
 export LD_LIBRARY_PATH=$SL
 sudo env LD_LIBRARY_PATH=$SL ./apps/capture_raw 500
@@ -278,9 +278,9 @@ sleep 5
 
 # 500 кадров 640×516
 v4l2-ctl -d /dev/video2 \
-  --set-fmt-video=width=640,height=516,pixelformat=YUYV \
-  --stream-mmap --stream-to=/tmp/v4l2.bin --stream-count=500 \
-  > /dev/null
+--set-fmt-video=width=640,height=516,pixelformat=YUYV \
+--stream-mmap --stream-to=/tmp/v4l2.bin --stream-count=500 \
+> /dev/null
 
 ls -la /tmp/v4l2.bin
 # ожидаем 500 × 660480 = 330 240 000
@@ -305,29 +305,29 @@ import numpy as np
 
 # === SDK ===
 def sdk_raw_to_celsius(raw):
-    """raw: uint16, mean ~12000"""
-    return (raw - 10000.0) / 100.0
+"""raw: uint16, mean ~12000"""
+return (raw - 10000.0) / 100.0
 
 # === V4L2 640×516 ===
 def v4l2_raw_to_celsius(raw):
-    """raw: uint16, mean ~4820"""
-    return 0.012633 * raw - 39.0768
+"""raw: uint16, mean ~4820"""
+return 0.012633 * raw - 39.0768
 
 # === V4L2 → SDK (для совместимости) ===
 def v4l2_to_sdk(raw_v4l2):
-    return 1.263331 * raw_v4l2 + 6092.324
+return 1.263331 * raw_v4l2 + 6092.324
 
 # === Захват и парсинг V4L2 файла ===
 def load_v4l2_frames(path, n_frames=None):
-    W, H, PX_H = 640, 516, 512
-    d = np.fromfile(path, dtype=np.uint16)
-    n = d.size // (W * H)
-    if n_frames:
-        n = min(n, n_frames)
-    frames = np.zeros((n, PX_H, W), dtype=np.uint16)
-    for i in range(n):
-        frames[i] = d[i*W*H : i*W*H + PX_H*W].reshape(PX_H, W)
-    return frames
+W, H, PX_H = 640, 516, 512
+d = np.fromfile(path, dtype=np.uint16)
+n = d.size // (W * H)
+if n_frames:
+n = min(n, n_frames)
+frames = np.zeros((n, PX_H, W), dtype=np.uint16)
+for i in range(n):
+frames[i] = d[i*W*H : i*W*H + PX_H*W].reshape(PX_H, W)
+return frames
 ```
 
 ## 9. Практические ограничения

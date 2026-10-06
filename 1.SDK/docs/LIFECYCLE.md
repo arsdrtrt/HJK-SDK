@@ -7,29 +7,29 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  1. Загрузка библиотек      dlopen(libusb, libuvc) + HIK     │
-│           ↓                                                  │
-│  2. USBSDK_Init              инициализация SDK               │
-│           ↓                                                  │
-│  3. USBSDK_EnumDevice        поиск камер                     │
-│           ↓                                                  │
-│  4. USBSDK_LoginDevice       логин, получение uid            │
-│           ↓                                                  │
-│  5. USBSDK_Get_SysInfo       модель, FW, HW, SN              │
-│           ↓                                                  │
-│  6. USBSDK_CreateCallBack    подписка на кадры               │
-│           ↓                                                  │
-│  ┌────────────────────────────────────────────┐              │
-│  │  7. Рабочий цикл (пока работает приложение)│              │
-│  │     • приём кадров в callback              │              │
-│  │     • рендеринг                            │              │
-│  │     • управление параметрами               │              │
-│  │     • измерения                            │              │
-│  └────────────────────────────────────────────┘              │
-│           ↓                                                  │
-│  8. USBSDK_Logout            освобождение uid                │
-│           ↓                                                  │
-│  9. Выгрузка библиотек       автоматически при exit          │
+│ 1. Загрузка библиотек dlopen(libusb, libuvc) + HIK │
+│ ↓ │
+│ 2. USBSDK_Init инициализация SDK │
+│ ↓ │
+│ 3. USBSDK_EnumDevice поиск камер │
+│ ↓ │
+│ 4. USBSDK_LoginDevice логин, получение uid │
+│ ↓ │
+│ 5. USBSDK_Get_SysInfo модель, FW, HW, SN │
+│ ↓ │
+│ 6. USBSDK_CreateCallBack подписка на кадры │
+│ ↓ │
+│ ┌────────────────────────────────────────────┐ │
+│ │ 7. Рабочий цикл (пока работает приложение)│ │
+│ │ • приём кадров в callback │ │
+│ │ • рендеринг │ │
+│ │ • управление параметрами │ │
+│ │ • измерения │ │
+│ └────────────────────────────────────────────┘ │
+│ ↓ │
+│ 8. USBSDK_Logout освобождение uid │
+│ ↓ │
+│ 9. Выгрузка библиотек автоматически при exit │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -43,24 +43,24 @@ ircam::Camera cam;
 
 // Шаги 1–6 одной операцией
 if (!cam.open(0)) {
-    fprintf(stderr, "open failed\n");
-    return 1;           // ошибка → выходим
+fprintf(stderr, "open failed\n");
+return 1; // ошибка → выходим
 }
 
 printf("Model: %s\n", cam.model().c_str());
-printf("FW:    %s\n", cam.firmware().c_str());
-printf("SN:    %s\n", cam.serial().c_str());
+printf("FW: %s\n", cam.firmware().c_str());
+printf("SN: %s\n", cam.serial().c_str());
 
 // Шаг 6: подписка на кадры
 cam.set_callback([](const ircam::Frame &f) {
-    // Шаг 7: обработка кадра в отдельном потоке SDK
-    // ...
+// Шаг 7: обработка кадра в отдельном потоке SDK
+// ...
 });
 
 // ... основной цикл приложения ...
 
 // Шаг 8: при выходе
-cam.close();   // внутри: USBSDK_Logout + освобождение ресурсов
+cam.close(); // внутри: USBSDK_Logout + освобождение ресурсов
 ```
 
 ## 2. Обработка ошибок по шагам
@@ -85,8 +85,8 @@ SDK вызывает `dlopen()` для `libusb-1.0.so` и `libuvc.so` **без �
 ```cpp
 int r = USBSDK_Init();
 if (r != 1) {
-    fprintf(stderr, "USBSDK_Init failed: %s\n", USBSDK_GetLastError());
-    return 1;
+fprintf(stderr, "USBSDK_Init failed: %s\n", USBSDK_GetLastError());
+return 1;
 }
 ```
 
@@ -115,11 +115,11 @@ cam_info.dwSize = sizeof(cam_info);
 
 int r = USBSDK_EnumDevice(&cam_info);
 if (r != 0) {
-    fprintf(stderr, "EnumDevice ret=%d err=%s\n", r, USBSDK_GetLastError());
-    if (r == -2) {
-        fprintf(stderr, "  hint: нужен симлинк libusb-1.0.so в текущей директории\n");
-    }
-    return 1;
+fprintf(stderr, "EnumDevice ret=%d err=%s\n", r, USBSDK_GetLastError());
+if (r == -2) {
+fprintf(stderr, " hint: нужен симлинк libusb-1.0.so в текущей директории\n");
+}
+return 1;
 }
 ```
 
@@ -135,8 +135,8 @@ if (r != 0) {
 ```cpp
 int uid = USBSDK_LoginDevice(&cam_info);
 if (uid < 0) {
-    fprintf(stderr, "Login failed: %s\n", USBSDK_GetLastError());
-    return 1;
+fprintf(stderr, "Login failed: %s\n", USBSDK_GetLastError());
+return 1;
 }
 ```
 
@@ -148,11 +148,11 @@ if (uid < 0) {
 USB_SYSTEM_INFO si;
 memset(&si, 0, sizeof(si));
 if (USBSDK_Get_SysInfo(uid, &si) == 0) {
-    printf("FW=%s HW=%s SN=%s\n",
-           si.byFirmwareVersion, si.byHardwareVersion, si.bySerialNumber);
+printf("FW=%s HW=%s SN=%s\n",
+si.byFirmwareVersion, si.byHardwareVersion, si.bySerialNumber);
 } else {
-    fprintf(stderr, "warning: Get_SysInfo failed\n");
-    // продолжаем
+fprintf(stderr, "warning: Get_SysInfo failed\n");
+// продолжаем
 }
 ```
 
@@ -168,9 +168,9 @@ if (USBSDK_Get_SysInfo(uid, &si) == 0) {
 ```cpp
 int r = USBSDK_CreateCallBack(uid, frame_callback, nullptr);
 if (r != 0) {
-    fprintf(stderr, "CreateCallBack failed: %s\n", USBSDK_GetLastError());
-    USBSDK_Logout(uid);
-    return 1;
+fprintf(stderr, "CreateCallBack failed: %s\n", USBSDK_GetLastError());
+USBSDK_Logout(uid);
+return 1;
 }
 ```
 
@@ -179,11 +179,11 @@ if (r != 0) {
 Типичные проблемы — не ошибки SDK, а гонки данных:
 
 - **Callback приходит из чужого потока.** Любая запись в общие структуры
-  должна быть под мьютексом.
+должна быть под мьютексом.
 - **Heap corruption при ресайзе векторов.** Если рендер и callback обращаются
-  к одному буферу без синхронизации — segfault. Фикс: один общий `std::mutex`.
+к одному буферу без синхронизации — segfault. Фикс: один общий `std::mutex`.
 - **Зависание callback.** Если SDK перестал присылать кадры, приложение
-  должно это заметить (watchdog, см. §4).
+должно это заметить (watchdog, см. §4).
 
 ### Шаг 8. `USBSDK_Logout()`
 
@@ -214,11 +214,11 @@ USBSDK_Logout(uid);
 (см. `docs/LIFECYCLE.md`, раздел «Права на USB»).
 
 **Вручную:**
-    sudo ./detach_uvc.sh
+sudo ./detach_uvc.sh
 
 **Проверка:**
-    ls /sys/bus/usb/drivers/uvcvideo/ | grep -i 2bdf
-    # должно быть пусто
+ls /sys/bus/usb/drivers/uvcvideo/ | grep -i 2bdf
+# должно быть пусто
 
 
 
@@ -243,34 +243,34 @@ USBSDK_Logout(uid);
 
 ```cpp
 if (!cam.upgrade_start("/path/to/firmware.bin")) {
-    fprintf(stderr, "upgrade_start failed\n");
-    return 1;
+fprintf(stderr, "upgrade_start failed\n");
+return 1;
 }
 
 int last = -100;
 time_t t0 = time(nullptr);
 
 while (true) {
-    int s = cam.upgrade_state();
-    int elapsed = time(nullptr) - t0;
+int s = cam.upgrade_state();
+int elapsed = time(nullptr) - t0;
 
-    if (s != last) {
-        printf("[%3ds] state: %d\n", elapsed, s);
-        last = s;
-    }
+if (s != last) {
+printf("[%3ds] state: %d\n", elapsed, s);
+last = s;
+}
 
-    if (s == 1 || s == 2 || s == 4) break;   // конечные состояния
-    if (elapsed > 300) {                     // 5 минут — таймаут
-        fprintf(stderr, "timeout\n");
-        break;
-    }
-    sleep(1);
+if (s == 1 || s == 2 || s == 4) break; // конечные состояния
+if (elapsed > 300) { // 5 минут — таймаут
+fprintf(stderr, "timeout\n");
+break;
+}
+sleep(1);
 }
 
 if (last == 2) {
-    printf("SUCCESS — переподключи USB через 5–10 секунд\n");
+printf("SUCCESS — переподключи USB через 5–10 секунд\n");
 } else {
-    printf("FAILED state=%d\n", last);
+printf("FAILED state=%d\n", last);
 }
 ```
 
@@ -278,13 +278,13 @@ if (last == 2) {
 
 ```
 USBSDK_Upgrade(uid, path)
-  └─ CUsbCommandUpgrade::Excute()
-       ├─ GetUpgradePermission    → устройство даёт добро
-       ├─ SetUpgradeFileSize      → HPR_FileStat + HPR_OpenFile
-       ├─ SetUpgradeCrc           → CalCRC32 всего файла
-       ├─ SendUpgradeDataWithRecv → чанки, ждёт подтверждения каждого
-       ├─ GetDeviceUpgradeState   → парсит XML: <upgrading>, <percent>, <upgradeStatus>
-       └─ CloseUpgradeHandle
+└─ CUsbCommandUpgrade::Excute()
+├─ GetUpgradePermission → устройство даёт добро
+├─ SetUpgradeFileSize → HPR_FileStat + HPR_OpenFile
+├─ SetUpgradeCrc → CalCRC32 всего файла
+├─ SendUpgradeDataWithRecv → чанки, ждёт подтверждения каждого
+├─ GetDeviceUpgradeState → парсит XML: <upgrading>, <percent>, <upgradeStatus>
+└─ CloseUpgradeHandle
 ```
 
 Особенности:
@@ -292,10 +292,10 @@ USBSDK_Upgrade(uid, path)
 - **Прогресс в % недоступен** через `USBSDK_Get_Upgrade_State` — только `UPGRADE_TRANS` (без числа).
 - **Отката нет.** Единственная защита — правильный файл.
 - **BOOT-режим.** Во время апгрейда устройство переподключается с другим VID:PID
-  и SDK находит его **по серийнику**. Поэтому:
-  - не выдёргивать USB,
-  - не удивляться, если в `lsusb` мелькнёт другое устройство,
-  - не запускать второй экземпляр.
+и SDK находит его **по серийнику**. Поэтому:
+- не выдёргивать USB,
+- не удивляться, если в `lsusb` мелькнёт другое устройство,
+- не запускать второй экземпляр.
 
 ### 3.4. Что делать после `UPGRADE_FAILED`
 
@@ -303,9 +303,9 @@ USBSDK_Upgrade(uid, path)
 2. Подождать 10–30 секунд.
 3. Проверить `lsusb`: устройство всё ещё видно?
 4. Перезапустить `demo`:
-   - если открылось и `SN` тот же — удача, повторить с правильным файлом;
-   - если `EnumDevice ret=-1` — камера в BOOT-режиме, ждать до 1 минуты;
-   - если `EnumDevice ret=-2` — проблема с библиотеками, не с камерой.
+- если открылось и `SN` тот же — удача, повторить с правильным файлом;
+- если `EnumDevice ret=-1` — камера в BOOT-режиме, ждать до 1 минуты;
+- если `EnumDevice ret=-2` — проблема с библиотеками, не с камерой.
 
 ## 4. Watchdog: что делать при зависании
 
@@ -318,21 +318,21 @@ USBSDK_Upgrade(uid, path)
 static std::atomic<uint64_t> g_last_frame_time{0};
 
 void on_frame(const Frame &f) {
-    g_last_frame_time.store(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count()
-    );
-    // ... обработка
+g_last_frame_time.store(
+std::chrono::duration_cast<std::chrono::milliseconds>(
+std::chrono::steady_clock::now().time_since_epoch()).count()
+);
+// ... обработка
 }
 
 // в главном цикле:
 uint64_t last = g_last_frame_time.load();
-uint64_t now  = std::chrono::duration_cast<std::chrono::milliseconds>(
-    std::chrono::steady_clock::now().time_since_epoch()).count();
+uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+std::chrono::steady_clock::now().time_since_epoch()).count();
 
-if (last != 0 && now - last > 2000) {   // 2 секунды без кадров
-    fprintf(stderr, "no frames for 2s — camera disconnected?\n");
-    break;
+if (last != 0 && now - last > 2000) { // 2 секунды без кадров
+fprintf(stderr, "no frames for 2s — camera disconnected?\n");
+break;
 }
 ```
 
@@ -364,29 +364,29 @@ if (last != 0 && now - last > 2000) {   // 2 секунды без кадров
 
 ```cpp
 int main() {
-    ircam::Camera cam;
+ircam::Camera cam;
 
-    // Шаг 1–6 с проверкой
-    if (!cam.open(0)) {
-        fprintf(stderr, "camera open failed\n");
-        return 1;
-    }
+// Шаг 1–6 с проверкой
+if (!cam.open(0)) {
+fprintf(stderr, "camera open failed\n");
+return 1;
+}
 
-    printf("Model=%s FW=%s SN=%s\n",
-           cam.model().c_str(),
-           cam.firmware().c_str(),
-           cam.serial().c_str());
+printf("Model=%s FW=%s SN=%s\n",
+cam.model().c_str(),
+cam.firmware().c_str(),
+cam.serial().c_str());
 
-    cam.set_callback([](const ircam::Frame &f) {
-        // ...
-    });
+cam.set_callback([](const ircam::Frame &f) {
+// ...
+});
 
-    // Шаг 7
-    // ... рабочий цикл ...
+// Шаг 7
+// ... рабочий цикл ...
 
-    // Шаг 8 — вызывать всегда, даже при ошибке
-    cam.close();
-    return 0;
+// Шаг 8 — вызывать всегда, даже при ошибке
+cam.close();
+return 0;
 }
 ```
 
@@ -394,9 +394,9 @@ int main() {
 
 - [X] **Не выдёргивать USB во время апгрейда.** Кирпич.
 - [X] **Не логиниться дважды** из двух процессов одновременно. Второй получит
-  ошибку или подвиснет.
+ошибку или подвиснет.
 - [X] **Не вызывать `USBSDK_Init()` дважды** без `Cleanup`. Поведение не определено.
 - [X] **Не заливать прошивку от другой модели.** `UPGRADE_TYPE_UNMATCH` — это
-  хороший исход, отсутствие проверки — плохой.
+хороший исход, отсутствие проверки — плохой.
 - [X] **Не игнорировать `Logout`.** Может залипнуть USB-интерфейс.
 - [X] **Не запускать под conda.** Segfault.git 

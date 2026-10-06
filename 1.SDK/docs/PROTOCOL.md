@@ -28,13 +28,13 @@ UVC идёт через `libuvc` (isochronous + control), ISUSB — через `
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  head  (tagXU_COMMAND_HEAD)                      │
-│  ├─ magic / signature                            │
-│  ├─ kind_id     ← ID команды (см. §3)            │
-│  ├─ payload_len                                  │
-│  └─ flags / seq                                  │
+│ head (tagXU_COMMAND_HEAD) │
+│ ├─ magic / signature │
+│ ├─ kind_id ← ID команды (см. §3) │
+│ ├─ payload_len │
+│ └─ flags / seq │
 ├──────────────────────────────────────────────────┤
-│  payload       (сериализация IN-типа)            │
+│ payload (сериализация IN-типа) │
 └──────────────────────────────────────────────────┘
 ```
 
@@ -45,8 +45,8 @@ UVC идёт через `libuvc` (isochronous + control), ISUSB — через `
 То же для vendor bulk. Дополнительно есть `_INTER_USB_RET_HEAD` — заголовок ответа.
 
 ```
-[bulk OUT]  _INTER_CMD_HEAD + payload
-[bulk IN ]  _INTER_USB_RET_HEAD + payload ответа
+[bulk OUT] _INTER_CMD_HEAD + payload
+[bulk IN ] _INTER_USB_RET_HEAD + payload ответа
 ```
 
 Разбор: `CUsbProtocolISUSB::ConvertData<T>` и `ParseRecvData<T>` — по одной
@@ -164,31 +164,31 @@ UVC идёт через `libuvc` (isochronous + control), ISUSB — через `
 
 ```
 USBSDK_Upgrade(uid, path)
-  │
-  └─ CUsbCommandUpgrade::Excute()
-       │
-       ├─ GetUpgradePermission
-       │    → ID 2000 IN=tagINTER_SYSTEM_UPDATE_OPERATE
-       │    ← OUT=tagUSB_SYSTEM_UPDATE_FIRMWARE_PERMIT
-       │
-       ├─ SetUpgradeFileSize
-       │    → ID 2000 IN=tagINTER_SYSTEM_UPDATE_FILESIZE
-       │    (HPR_FileStat → HPR_OpenFile)
-       │
-       ├─ SetUpgradeCrc
-       │    → ID 2000 IN=tagINTER_SYSTEM_UPDATE_CRC
-       │    (CalCRC32 всего файла, HPR_ReadFile)
-       │
-       ├─ SendUpgradeDataWithRecv
-       │    → ID 2000 IN=tagUSB_SYSTEM_UPDATE_FIRMWARE
-       │    (чанки: dwMsgTotalNum, dwCurMsgIndex, dwHaveSendSize)
-       │    (ждёт подтверждения каждого чанка: struUpdateRes.dwExpMsgIndex)
-       │
-       ├─ GetDeviceUpgradeState
-       │    ← парсит XML от устройства:
-       │        <upgrading>, <upgradeStatus>, <percent>
-       │
-       └─ CloseUpgradeHandle
+│
+└─ CUsbCommandUpgrade::Excute()
+│
+├─ GetUpgradePermission
+│ → ID 2000 IN=tagINTER_SYSTEM_UPDATE_OPERATE
+│ ← OUT=tagUSB_SYSTEM_UPDATE_FIRMWARE_PERMIT
+│
+├─ SetUpgradeFileSize
+│ → ID 2000 IN=tagINTER_SYSTEM_UPDATE_FILESIZE
+│ (HPR_FileStat → HPR_OpenFile)
+│
+├─ SetUpgradeCrc
+│ → ID 2000 IN=tagINTER_SYSTEM_UPDATE_CRC
+│ (CalCRC32 всего файла, HPR_ReadFile)
+│
+├─ SendUpgradeDataWithRecv
+│ → ID 2000 IN=tagUSB_SYSTEM_UPDATE_FIRMWARE
+│ (чанки: dwMsgTotalNum, dwCurMsgIndex, dwHaveSendSize)
+│ (ждёт подтверждения каждого чанка: struUpdateRes.dwExpMsgIndex)
+│
+├─ GetDeviceUpgradeState
+│ ← парсит XML от устройства:
+│ <upgrading>, <upgradeStatus>, <percent>
+│
+└─ CloseUpgradeHandle
 ```
 
 ### 4.1. BOOT-режим
@@ -197,7 +197,7 @@ USBSDK_Upgrade(uid, path)
 
 ```
 BOOT mode device - VID=[0x%X] PID=[0x%X] Serial Number=[%s]
-  Reopen success / Reopen failed
+Reopen success / Reopen failed
 ```
 
 Устройство во время апгрейда **переподключается** (другой VID:PID),
@@ -250,9 +250,9 @@ SDK находит его по серийнику. Поэтому `UPGRADE_TRANS
 
 Логин (`CUsbDeviceACS::Login`):
 ```
-GetDeviceEncryptAndChecksum   ← выбрать метод
+GetDeviceEncryptAndChecksum ← выбрать метод
 GetDeviceAESKey / GenerateAesKey ← обмен ключом
-GenerateIrreversiblePassword  ← PBKDF2(пароль)
+GenerateIrreversiblePassword ← PBKDF2(пароль)
 SetChallenge / SetSalt / SetIterations
 ```
 
@@ -278,12 +278,12 @@ SetChallenge / SetSalt / SetIterations
 1. Открой `libHCUSBSDK.so` в IDA Pro / Ghidra.
 2. Подгрузи базу `.id0/.id1/.nam/.til` (лежат рядом с .so) — имена восстановятся.
 3. Найди:
-   - `CUsbProtocolUVC::PackageData`
-   - `CUsbProtocolUVCBase::ParseRecvData<T>`
-   - `CUsbProtocolISUSB::PackageData`
-   - `CUsbProtocolISUSB::ParseRecvData<T>`
+- `CUsbProtocolUVC::PackageData`
+- `CUsbProtocolUVCBase::ParseRecvData<T>`
+- `CUsbProtocolISUSB::PackageData`
+- `CUsbProtocolISUSB::ParseRecvData<T>`
 4. Восстанови layout `tagXU_COMMAND_HEAD` и `_INTER_CMD_HEAD` — из первых 32–64 байт
-   каждой функции.
+каждой функции.
 5. Загляни в `.rodata` — там могут быть magic-константы, публичные ключи, GUID.
 
 ## 8. Что можно делать уже сейчас
