@@ -1,0 +1,21 @@
+# Бинарники и объектные файлы
+*.o
+*.a
+apps/demo
+apps/raw
+apps/raw_view
+apps/view
+apps/fw
+
+# Дампы и результаты
+*.bin
+*.raw
+*.png
+*.AppImage
+
+# Симлинки (их нужно создавать заново на каждой машине)
+libusb-1.0.so
+libuvc.so
+
+# Папки сборки
+AppDir/
