@@ -2,8 +2,10 @@
  * Прогон реального y16 кадра через IRSDK_Frame2Gray_DDE_m_v3
  * с разными параметрами.
  *
- * Ключевое: u8Method = 0 — auto AGC (minT/maxT игнорируются),
- *           u8Method = 1 — manual window (minT/maxT в °C работают).
+ * Ключевое:
+ *   u8Method = 0 — auto AGC (minT/maxT игнорируются, работают contrast/bright)
+ *   u8Method = 1 — manual window (minT/maxT в °C, contrast/bright в manual
+ *                  не применяются к окну)
  *
  * Сборка:
  *   gcc -O2 -Wall -o 01_render_test 01_render_test.c -ldl -lm
@@ -92,14 +94,14 @@ int main(int argc, char** argv)
 
     struct { const char* name; float c, b, minT, maxT;
              unsigned char method, gamma, dde; } tests[] = {
-        { "m0_auto",             0.0f, 0.0f,  0.0f,  0.0f, 0, 0,  50 },
-        { "m0_win_24_26",        0.0f, 0.0f, 24.0f, 26.0f, 0, 0,  50 },
-        { "m1_win_24_26",        0.0f, 0.0f, 24.0f, 26.0f, 1, 0,  50 },
-        { "m1_win_25_27",        0.0f, 0.0f, 25.0f, 27.0f, 1, 0,  50 },
-        { "m1_win_24_27",        0.0f, 0.0f, 24.0f, 27.0f, 1, 0,  50 },
-        { "m1_win_22_28",        0.0f, 0.0f, 22.0f, 28.0f, 1, 0,  50 },
-        { "m1_win_20_30",        0.0f, 0.0f, 20.0f, 30.0f, 1, 0,  50 },
-        { "m1_win_24_26_dde100", 0.0f, 0.0f, 24.0f, 26.0f, 1, 0, 100 },
+        { "a_c0_b0",      0.0f,   0.0f,  0.0f,  0.0f, 0, 0, 50 },
+        { "a_c0_b50",     0.0f,  50.0f,  0.0f,  0.0f, 0, 0, 50 },
+        { "a_c0_b100",    0.0f, 100.0f,  0.0f,  0.0f, 0, 0, 50 },
+        { "a_c50_b0",    50.0f,   0.0f,  0.0f,  0.0f, 0, 0, 50 },
+        { "a_c100_b0",  100.0f,   0.0f,  0.0f,  0.0f, 0, 0, 50 },
+        { "a_c50_b50",   50.0f,  50.0f,  0.0f,  0.0f, 0, 0, 50 },
+        { "m1_24_26",     0.0f,   0.0f, 24.0f, 26.0f, 1, 0, 50 },
+        { "m1_24_26_c50",50.0f,   0.0f, 24.0f, 26.0f, 1, 0, 50 },
     };
     int n_tests = sizeof(tests) / sizeof(tests[0]);
 
@@ -113,7 +115,7 @@ int main(int argc, char** argv)
         char fn[256];
         snprintf(fn, sizeof(fn), "/tmp/out_%s.pgm", tests[i].name);
         save_pgm(fn, gray, w, h);
-        fprintf(stderr, "  %-24s rc=%d -> %s\n", tests[i].name, rc, fn);
+        fprintf(stderr, "  %-18s rc=%d -> %s\n", tests[i].name, rc, fn);
     }
 
     free(gray); free(rgba); free(tbuf); free(fr);
