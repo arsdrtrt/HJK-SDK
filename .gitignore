@@ -37,6 +37,5 @@ appimagetool
 # Временное
 *.swp
 *~
-4.PROTOCOL/captures/*.txt
-4.PROTOCOL/captures/*.pcap
-4.PROTOCOL/data/
+3.pipeline/captures/
+3.pipeline/data/
